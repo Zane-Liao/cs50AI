@@ -94,35 +94,23 @@ def shortest_path(source, target):
     path = []
     queue = QueueFrontier()
     queue.add(Node(source, None, None))
-    visited = set()
-
-    # Create Graph
-    graph = {}
-    for u, v in visited:
-        if u not in graph:
-            graph[u] = []
-        graph[u].append(v)
 
     # Search
     while not queue.empty():
         v = queue.remove()
         if v.state == target:
-
-            for (movie_id, person_id) in visited:
-                if person_id == target:
-                    return None           
-
+            while v.parent is not None:
+                path.insert(0, (v.action, v.state))
+                v = v.parent
             return path
+        
         for (movie_id, person_id) in neighbors_for_person(v.state):
             if not queue.contains_state(target):
-                visited.add((v.action, v.state))
                 node = Node(person_id, v, movie_id)
                 queue.add(node)
 
     if target not in path:
         return None
-    
-    # raise NotImplementedError
 
 
 def person_id_for_name(name):

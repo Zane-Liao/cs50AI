@@ -24,7 +24,7 @@ def player(board):
     Returns player who has the next turn on a board.
     """
     # X and 0
-    if board == terminal() and terminal() == True:
+    if board == terminal(board) and terminal(board) == True:
         return None
     
     if board == initial_state():
@@ -43,7 +43,7 @@ def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    if board == terminal() and terminal() == True:
+    if board == terminal(board) and terminal(board) == True:
         return None
     
     action = set()
@@ -132,3 +132,39 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
+    # terminal board
+    if board == True or board == False:
+        return None
+    
+    def max_value(board):
+        """
+        """
+        value = float('-inf')
+
+        if terminal(board):
+            return utility(board)
+        
+        for action in actions(board):
+            value = max(value, min_value(result(board, action)))
+        
+        return value
+    
+    def min_value(board):
+        """
+        """
+        value = float('inf')
+
+        if terminal(board):
+            return utility(board)
+        
+        for action in actions(board):
+            value = min(value, max_value(result(board, action)))
+        
+        return value
+
+    
+    # minimax algorithm
+    # a_max = max(actions(board))
+    # max_value(result(board, a_max))
+    # a_min = min(actions(board))
+    # min_value(result(board, a_min))

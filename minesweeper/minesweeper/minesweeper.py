@@ -122,8 +122,6 @@ class Sentence():
         """
         if cell in self.cells:
             self.cells.remove(cell)
-        else:
-            return None
 
     def mark_safe(self, cell):
         """
@@ -132,8 +130,6 @@ class Sentence():
         """
         if cell in self.cells:
             self.cells.remove(cell)
-        else:
-            return None
 
 
 class MinesweeperAI():
@@ -236,9 +232,9 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        for self in self.safes:
-            if self not in self.moves_made:
-                return self
+        for cell in self.safes:
+            if cell not in self.moves_made:
+                return cell
         
         return None
 
@@ -250,10 +246,10 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        if self.make_safe_move() is None:
+        cells = set((i, j) for i in range(self.height) for j in range(self.width))
+        random_move = list(cells - self.moves_made - self.mines)
 
-            for sentence in self.knowledge:
-                if sentence.count == 0 and not self.moves_made:
-                    return random(self)
-                else:
-                    return None
+        if random_move:
+            return random.choice(random_move)
+        else:
+            return None

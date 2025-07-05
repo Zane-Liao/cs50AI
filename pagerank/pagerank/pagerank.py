@@ -123,27 +123,29 @@ def iterate_pagerank(corpus, damping_factor):
     PageRank values should sum to 1.
     """
     # Iterator Pagerank
-    # I checkout out some explanaction on Wikipedia and a few ther websites
     # We use $PR(p) = \frac{1 - d}{N} + d \sum_{i \in 
     # \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
-    page_ranks = {}
-    
-    page_ranks = {page: 0 for page in corpus}
-    # translat 2D array
-    values = list(list(corpus[k]) for k in corpus.keys())
-    values_n = np.array(values)
+    N = len(corpus)
+    page_ranks = {page: 1 / N for page in corpus}
+    new_page_ranks = page_ranks.copy()
 
-    # Come from Wikipedia
-    N = values_n.shape[1]
-    w = np.ones(N) / N
-    values_n_hat = damping_factor * values_n
-    v = values_n_hat @ w + (1 - damping_factor) / N
-    while np.linalg.norm(w - v) >= 1e-2:
-        w = v
-        v = values_n_hat @ w + (1 - damping_factor) / N
-
-    # translat dict
-    page_ranks = {k: set(row) for k, row in zip(page_ranks.keys(), v)}
+    while True:
+        for pages in corpus:
+            # $\sum_{i \in \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
+            value = 0
+            for page in corpus:
+                links = corpus[page]
+                if pages in links:
+                    value += page_ranks[page] / len(links)
+                elif not links:
+                    value += page_ranks[page] / N
+            # $\frac{1 - d}{N} + d \sum_{i \in 
+            # \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
+            new_page_ranks[pages] = (1 - damping_factor) /\
+                                N + damping_factor * value
+        if max([abs(new_page_ranks[page] - page_ranks[page])
+                                for page in corpus]) < 0.01:
+            break
 
     return page_ranks
 

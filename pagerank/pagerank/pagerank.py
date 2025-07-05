@@ -131,6 +131,7 @@ def iterate_pagerank(corpus, damping_factor):
 
     while True:
         for pages in corpus:
+
             # $\sum_{i \in \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
             value = 0
             for page in corpus:
@@ -139,13 +140,16 @@ def iterate_pagerank(corpus, damping_factor):
                     value += page_ranks[page] / len(links)
                 elif not links:
                     value += page_ranks[page] / N
+
             # $\frac{1 - d}{N} + d \sum_{i \in 
             # \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
             new_page_ranks[pages] = (1 - damping_factor) /\
                                 N + damping_factor * value
         if max([abs(new_page_ranks[page] - page_ranks[page])
-                                for page in corpus]) < 0.01:
+                                for page in corpus]) < 0.001:
             break
+    
+    page_ranks = new_page_ranks.copy()
 
     return page_ranks
 

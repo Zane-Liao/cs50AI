@@ -87,20 +87,28 @@ def sample_pagerank(corpus, damping_factor, n):
     """
     # return each page -> PageRank
     # Analog Sampling, For Example Monte Carlo simulation
-
     page_ranks = {}
     each_page = {}
 
-    for _ in n:
-        # random.choice() items
-        random_page_pub = transition_model(corpus,
-                                       random.choice(corpus.items()),
-                                       damping_factor)
-        random_page = random.choice(random_page_pub.keys())
+    # Initial
+    each_page = {page: 0 for page in corpus}
+    # random.choice() has a parameter
+    random_page = random.choice(list(corpus.keys()))
+    for _ in range(n):
+        # random.choice() items, Because We random choice one page, so we +=1
         each_page[random_page] += 1
+        random_page_pub = transition_model(corpus,
+                                            random_page,
+                                            damping_factor)
+        # sampling k=1 choice 1 
+        # random.choices() has 5 parameters, random_page has list ['1.html']
+        # we need [0] -> return '1.html'
+        random_page = random.choices(population=list(random_page_pub.keys()),
+                                    weights=list(random_page_pub.values()),
+                                    k=1)[0]
 
-    for _page_ in corpus:
-        page_ranks[_page_] = each_page[_page_] / n
+    for page, count in each_page.items():
+        page_ranks[page] = count / n
 
     return page_ranks
 

@@ -58,22 +58,20 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
+    # Markov transition, Iterate 4 times
     page_pub = {}
     links = corpus[page]
+    N = len(corpus)
     
     if len(links) == 0:
-        for __page in corpus:
-            page_pub[__page] = 1 / len(corpus)
+        for _page_ in corpus:
+            page_pub[_page_] = 1 / N
         return page_pub
 
-    for link in links:
-        page_pub[link] = damping_factor / len(links) +\
-                (1 - damping_factor) / len(corpus)
-
-    for __page in corpus:
-        # if links with zero, random choice
-        if __page not in links:
-            page_pub[__page] = (1 - damping_factor) / len(corpus)
+    for _page_ in corpus:
+        page_pub[_page_] = (1 - damping_factor) / N
+        if _page_ in links:
+            page_pub[_page_] += damping_factor / len(links)
 
     return page_pub
 
@@ -87,7 +85,24 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    # return each page->PageRank
+    # return each page -> PageRank
+    # Analog Sampling, For Example Monte Carlo simulation
+
+    page_ranks = {}
+    each_page = {}
+
+    for _ in n:
+        # random.choice() items
+        random_page_pub = transition_model(corpus,
+                                       random.choice(corpus.items()),
+                                       damping_factor)
+        random_page = random.choice(random_page_pub.keys())
+        each_page[random_page] += 1
+
+    for _page_ in corpus:
+        page_ranks[_page_] = each_page[_page_] / n
+
+    return page_ranks
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -100,6 +115,9 @@ def iterate_pagerank(corpus, damping_factor):
     PageRank values should sum to 1.
     """
     # Iterator Pagerank
+    # We use $PR(p) = \frac{1 - d}{N} + d \sum_{i \in 
+    # \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
+
 
 
 if __name__ == "__main__":

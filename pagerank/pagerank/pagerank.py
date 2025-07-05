@@ -129,7 +129,8 @@ def iterate_pagerank(corpus, damping_factor):
     page_ranks = {page: 1 / N for page in corpus}
     new_page_ranks = page_ranks.copy()
 
-    while True:
+    # Use while True Very slow
+    for _ in range(100):
         for pages in corpus:
 
             # $\sum_{i \in \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
@@ -145,6 +146,8 @@ def iterate_pagerank(corpus, damping_factor):
             # \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
             new_page_ranks[pages] = (1 - damping_factor) /\
                                 N + damping_factor * value
+        
+        # $\max_{p} |PR_{\text{new}}(p) - PR_{\text{old}}(p)| < 0.001$
         if max([abs(new_page_ranks[page] - page_ranks[page])
                                 for page in corpus]) < 0.001:
             break

@@ -129,7 +129,7 @@ def iterate_pagerank(corpus, damping_factor):
     page_ranks = {page: 1 / N for page in corpus}
     new_page_ranks = page_ranks.copy()
 
-    # Use while True Very slow
+    # Use while True Very slow, Maybe fail to converge
     for _ in range(100):
         for pages in corpus:
 

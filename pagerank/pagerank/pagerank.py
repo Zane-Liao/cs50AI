@@ -123,9 +123,29 @@ def iterate_pagerank(corpus, damping_factor):
     PageRank values should sum to 1.
     """
     # Iterator Pagerank
+    # I checkout out some explanaction on Wikipedia and a few ther websites
     # We use $PR(p) = \frac{1 - d}{N} + d \sum_{i \in 
     # \text{In}(p)} \frac{PR(i)}{NumLinks(i)}$
+    page_ranks = {}
+    
+    page_ranks = {page: 0 for page in corpus}
+    # translat 2D array
+    values = list(list(corpus[k]) for k in corpus.keys())
+    values_n = np.array(values)
 
+    # Come from Wikipedia
+    N = values_n.shape[1]
+    w = np.ones(N) / N
+    values_n_hat = damping_factor * values_n
+    v = values_n_hat @ w + (1 - damping_factor) / N
+    while np.linalg.norm(w - v) >= 1e-2:
+        w = v
+        v = values_n_hat @ w + (1 - damping_factor) / N
+
+    # translat dict
+    page_ranks = {k: set(row) for k, row in zip(page_ranks.keys(), v)}
+
+    return page_ranks
 
 
 if __name__ == "__main__":

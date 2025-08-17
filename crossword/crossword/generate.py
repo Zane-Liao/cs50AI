@@ -1,6 +1,10 @@
 import sys
 
-from crossword import *
+from .crossword import Variable, Crossword
+
+Arc = tuple[Variable, Variable]
+
+Assignment = dict[Variable, str]
 
 class CrosswordCreator():
 
@@ -88,9 +92,9 @@ class CrosswordCreator():
         """
         Enforce node and arc consistency, and then solve the CSP.
         """
-        self.enforce_node_consistency()
-        self.ac3()
-        return self.backtrack(dict())
+        self.enforce_node_consistency() # Node Consistency
+        self.ac3() # ac-3 algorithm
+        return self.backtrack(dict()) # backtracking search
 
     def enforce_node_consistency(self):
         """
@@ -98,9 +102,12 @@ class CrosswordCreator():
         (Remove any values that are inconsistent with a variable's unary
          constraints; in this case, the length of the word.)
         """
-        
-        return 0
+        for variable, words in self.domains.items():
+            for word in words.copy():
+                if len(word) != variable.length:
+                    words.remove(word)
 
+    # Arc Consistency
     def revise(self, x, y):
         """
         Make variable `x` arc consistent with variable `y`.
@@ -110,7 +117,24 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-
+        overlap = self.crossword.overlaps[(x, y)]
+        if not overlap:
+            return False
+        
+        revised = False
+        overlap_x, overlap_y = overlap
+        for word_x in self.domains[x].copy():
+            x_match_y = False
+            for word_y in self.domains[y]:
+                if word_x[overlap_x] == word_y[overlap_y]:
+                    x_match_y = True
+                    break
+                
+            if not x_match_y:
+                self.domains[x].remove(word_x)
+                revised = True
+        
+        return revised
 
     def ac3(self, arcs=None):
         """
@@ -121,22 +145,74 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
+        arcs_: list[Arc] = []
+        for x in self.crossword.variables:
+            for y in self.crossword.variables:
+                if x == y:
+                    continue
+                
+                arc = self.crossword.overaps[(x, y)]
+                if arc:
+                    arcs_.append((x, y))
+        
+        if arcs is None:
+            arcs = self.arcs_
+        else:
+            arcs = arcs.copy()
+        
+        while len(arcs) > 0:
+            x, y = arcs.pop()
+            if self.revise(x, y):
+                if len(self.domains[x]) == 0:
+                    return False
+                
+                for neighbour in self.crossword.neighbours(x):
+                    if neighbour != y:
+                        arcs.append((neighbour, x))
+        
+        return True
 
 
+    # Are all variables assigned values?
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
+        for variable in self.crossword.variable:
+            if variable not in assignment:
+                return False
+            
+        return True
 
-
+    # Check assignment
     def consistent(self, assignment):
         """
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
+        unique_words: set[str] = set()
+        for x, word_x in self.assignment.items():
+            if word_x in unique_words:
+                return False
+            
+            unique_words.add(word_x)
+            
+            if len(word_x) != x.length:
+                return False
+            
+            for y in self.crossword.neighbours(x):
+                if y not in assignment:
+                    continue
+                
+                word_y = assignment[y]
+                overlap_x, overlap_y = self.get_overlaps(x, y)
+                if word_x[overlap_x] != word_y[overlap_y]:
+                    return False
+                
+        return True
 
-
+    # LCV
     def order_domain_values(self, var, assignment):
         """
         Return a list of values in the domain of `var`, in order by
@@ -145,7 +221,7 @@ class CrosswordCreator():
         that rules out the fewest values among the neighbors of `var`.
         """
 
-
+    # Minimum Remaining Values and Degree Heuristic
     def select_unassigned_variable(self, assignment):
         """
         Return an unassigned variable not already part of `assignment`.

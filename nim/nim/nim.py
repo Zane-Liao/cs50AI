@@ -101,7 +101,10 @@ class NimAI():
         Return the Q-value for the state `state` and the action `action`.
         If no Q-value exists yet in `self.q`, return 0.
         """
-        raise NotImplementedError
+        if (tuple(state), action) in self.q:
+            return self.q[tuple(state), action]
+
+        return 0
 
     def update_q_value(self, state, action, old_q, reward, future_rewards):
         """
@@ -118,7 +121,10 @@ class NimAI():
         `alpha` is the learning rate, and `new value estimate`
         is the sum of the current reward and estimated future rewards.
         """
-        raise NotImplementedError
+        new_value_estimate = reward + future_rewards
+        alpha = self.alpha
+        
+        self.q[tuple(state), action] = old_q + alpha * (new_value_estimate - old_q)
 
     def best_future_reward(self, state):
         """
@@ -130,7 +136,20 @@ class NimAI():
         Q-value in `self.q`. If there are no available actions in
         `state`, return 0.
         """
-        raise NotImplementedError
+        next_actions = Nim.available_actions(state)
+        
+        if len(next_actions) == 0:
+            return 0
+        
+        reward = -math.inf
+        
+        for action in next_actions:
+            cur_reward = self.q.get((tuple(state), action), 0)
+            if cur_reward > reward:
+                reward = cur_reward
+                
+        return reward
+
 
     def choose_action(self, state, epsilon=True):
         """
@@ -147,7 +166,25 @@ class NimAI():
         If multiple actions have the same Q-value, any of those
         options is an acceptable return value.
         """
-        raise NotImplementedError
+        next_actions = Nim.available_actions(state)
+        high_q = -math.inf
+        best_action = None
+
+        for action in next_actions:
+            cur_q = self.q.get((tuple(state), action), 0)
+            if cur_q > high_q:
+                high_q = cur_q
+                best_action = action
+
+        if epsilon:
+            action_weights = [self.epsilon / len(next_actions) if action != best_action
+                              else (1 - self.epsilon) for action in next_actions]
+
+            best_action = random.choices(
+                list(next_actions), weights=action_weights, k=1
+            )[0]
+
+        return best_action
 
 
 def train(n):

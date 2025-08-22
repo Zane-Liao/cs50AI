@@ -3,10 +3,11 @@ import numpy as np
 import os
 import sys
 import tensorflow as tf
+from keras import layers, Model, Input
 
 from sklearn.model_selection import train_test_split
 
-EPOCHS = 10
+EPOCHS = 30
 IMG_WIDTH = 30
 IMG_HEIGHT = 30
 NUM_CATEGORIES = 43
@@ -58,8 +59,39 @@ def load_data(data_dir):
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
     """
-    raise NotImplementedError
+    # Define Lists
+    images: list = []
+    labels: list = []
 
+    for cateory in range(NUM_CATEGORIES):
+        cateory_dir = os.path.join(data_dir, str(cateory))
+        for filename in os.listdir(cateory_dir):
+            # Transfor numpy.ndarray
+            img_path = os.path.join(cateory_dir, filename)
+            img = cv2.imread(img_path)
+            # Resize an image => 30 X 30
+            if img is not None:
+                resize_img = cv2.resize(img, (IMG_WIDTH, IMG_HEIGHT))
+                images.append(resize_img)
+                labels.append(cateory)
+
+    return (images, labels)
+
+# Resnet V1, filters => The number of convolution kernels
+def res_block(x, filters, kernel_size=3):
+    shortcut = x
+    x = layers.Conv2D(filters, kernel_size, padding='same', kernel_initializer='he_normal')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
+    
+    x = layers.Conv2D(filters, kernel_size, padding='same', kernel_initializer='he_normal')(x)
+    x = layers.BatchNormalization()(x)
+    
+    x = layers.Add()([shortcut, x])
+    x = layers.ReLU()(x)
+    
+    return x
+    
 
 def get_model():
     """
@@ -67,8 +99,26 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
-
+    inputs = Input(shape=(IMG_WIDTH, IMG_HEIGHT, 3))
+    
+    x = layers.Conv2D(64, 7, strides=2, padding='same')(inputs)
+    x = layers.MaxPool2D(3, strides=2, padding='same')(x)
+    
+    x = res_block(x, 64)
+    x = res_block(x, 64)
+    
+    x = layers.GlobalAveragePooling2D()(x)
+    outputs = layers.Dense(NUM_CATEGORIES, activation='softmax')(x)
+    
+    model = Model(inputs, outputs)
+    
+    model.compile(
+        optimizer='adam',
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
+    
+    return model
 
 if __name__ == "__main__":
     main()
